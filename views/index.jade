@@ -1,0 +1,116 @@
+extends layout
+
+block content
+  - var timestampToTime = function(timeStamp) {
+  -   var date = new Date(timeStamp);
+  -   var hours = date.getHours() + 2;
+  -   var minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+  -   var days = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"]
+  -   var day = date.getDay();
+  -   return days[day] + " " + hours + ':' + minutes;
+  - }
+
+  .container-fluid
+    .col-md-6(style="padding-right: 10px; padding-left: 0;")
+
+      #chat.panel-collapse.collapse.in
+        div
+          #messageDiv.portlet-body.chat-widget(style='overflow-y: auto; overflow-x: hidden; width: auto; height: 600px;')
+
+
+    .col-md-6(style="padding-left: 10px; padding-right: 0;")
+      ul.nav.nav-tabs
+        li.active#systemToggle
+          a(data-toggle="tab" href="#system") System
+        li#musicToggle
+          a(data-toggle="tab" href="#music") Music
+
+      .tab-content
+        #system.tab-pane.fade.in.active
+          h2(style="margin-top: 0;") CPU
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization1.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: "+core_utilization[1]+"%;")
+                #core_utilization1Text.progressBarText #{core_utilization[1]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization2.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[2] + "%;")
+                #core_utilization2Text.progressBarText #{core_utilization[2]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization3.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[3] + "%;")
+                #core_utilization3Text.progressBarText #{core_utilization[3]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization4.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+                #core_utilization4Text.progressBarText #{core_utilization[4]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization5.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[5] + "%;")
+                #core_utilization5Text.progressBarText #{core_utilization[5]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization6.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[6] + "%;")
+                #core_utilization6Text.progressBarText #{core_utilization[6]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization7.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[7] + "%;")
+                #core_utilization7Text.progressBarText #{core_utilization[7]}
+          .col-md-1
+            .wideVerticalBar.progress.progress-bar-vertical
+              #core_utilization8.progress-bar.progress-bar-success(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[8] + "%;")
+                #core_utilization8Text.progressBarText #{core_utilization[8]}
+          .col-md-4.cpu_info
+            p(style='white-space:pre;')
+              #cpu_utilization #{cpu_utilization}%
+              #cpu_temperature #{cpu_temperature}°C
+              #cpu_clock #{cpu_clock}MHz
+          .col-md-12
+            .darkBar.progress.center-block
+              #memory_utilization.progress-bar.progress-bar(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: " + memory_utilization + "%;")
+                #memory_utilizationText.progressBarText #{memory_used}MB
+          .col-md-12
+            h2#fps GPU
+            .col-md-6(style="padding-left: 0;")
+              .col-md-4(style="padding-left: 0;")
+                .wideVerticalBar.progress.progress-bar-vertical
+                  #gpu_utilization1.progress-bar.progress-bar-danger(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + gpu_utilization[1] + "%;")
+                    #gpu_utilization1Text.progressBarText #{gpu_utilization[1]}%
+              .col-md-8.cpu_info
+                p(style='white-space:pre;')
+                #gpu_temperature1 #{gpu_temperature[1]}°C
+                #gpu_fanUtilization1 #{gpu_fanUtilization[1]}% Fan
+                #gpu_clock1 #{gpu_clock[1]}MHz
+            .col-md-6(style="padding-left: 0;")
+              .col-md-4(style="padding-left: 0;")
+                .wideVerticalBar.progress.progress-bar-vertical
+                  #gpu_utilization2.progress-bar.progress-bar-danger(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + gpu_utilization[2] + "%;")
+                    #gpu_utilization2Text.progressBarText #{gpu_utilization[2]}%
+              .col-md-8.cpu_info
+                p(style='white-space:pre;')
+                #gpu_temperature2 #{gpu_temperature[2]}°C
+                #gpu_fanUtilization2 #{gpu_fanUtilization[2]}% Fan
+                #gpu_clock2 #{gpu_clock[2]}MHz
+            .col-md-12
+              .darkBar.progress.center-block
+                #gpu_memoryUtilization.progress-bar.progress-bar(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: " + gpu_memoryUtilization + "%;")
+                  #gpu_memoryUsed.progressBarText #{gpu_memoryUsed}MB
+          .col-md-12
+            h2 NET
+            .col-md-6
+              .darkBar.progress.center-block(style="margin-bottom: 5px;")
+                #nic2_downloadRate.progress-bar.progress-bar-warning(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: " + nic2_downloadUtilization + "%;")
+              #nic2_downloadRateText.progressBarText #{nic2_downloadRate}K
+            .col-md-6
+              .darkBar.progress.center-block(style="margin-bottom: 5px;")
+                #nic2_uploadRate.progress-bar.progress-bar-warning(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width: " + nic2_uploadUtilization + "%;")
+              #nic2_uploadRateText.progressBarText #{nic2_uploadRate}K
+
+        #music.tab-pane.fade.in
+          br
+          .col-md-6
+            a#speakerButton.btn.btn-primary.btn-lg(style="width: 100%;") Speaker
+          .col-md-6
+            a#headsetButton.btn.btn-primary.btn-lg(style="width: 100%;") Headset
+          //.col-md-12
+            //#beatCircle.circle
