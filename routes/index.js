@@ -1,14 +1,15 @@
 module.exports = function (io, simpleTelegram) {
+    var config = require('../config');
     var express = require('express');
     var rssWatcher = require('rss-watcher');
 
     var PushBullet = require('pushbullet');
-    var pushBullet = new PushBullet('');
+    var pushBullet = new PushBullet(config.pushBulletAPIKey);
     var pushBulletStream = pushBullet.stream();
     pushBulletStream.connect();
 
-    var githubHomeWatcher = new rssWatcher("https://github.com/shock2provide.private.atom?token=ACpJMx3k8_pdJHChgOAmo1GxLasBFiwXks61xNbPwA==");
-    var gamestarWatcher = new rssWatcher("http://www.gamestar.de/news/rss/news.rss");
+    var githubHomeWatcher = new rssWatcher(config.githubRSSFeedURL);
+    var gamestarWatcher = new rssWatcher(config.gamestarRSSFeedURL);
     var router = express.Router();
 
 
@@ -287,7 +288,7 @@ module.exports = function (io, simpleTelegram) {
         });
     });
 
-    simpleTelegram.create("../tg-master/bin/telegram-cli", "../tg-master/tg-server.pub");
+    simpleTelegram.create(config.telegramCLIBinPath, config.telegramCLIPubPath);
 
     simpleTelegram.getProcess().stdout.on("receivedMessage", function (msg) {
         addMessage(msg);
