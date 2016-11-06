@@ -62,6 +62,34 @@ $(document).ready(function() {
         socket.emit('switchToHeadset');
     });
 
+    $('#spotifyPlayPauseButton').click(function () {
+        socket.emit('spotifyControl',   {
+            playing: "switch"
+        });
+    });
+    $('#spotifyPreviousButton').click(function () {
+        socket.emit('spotifyControl', {
+            nextPrevious: "previous"
+        });
+    });
+    $('#spotifyNextButton').click(function () {
+        socket.emit('spotifyControl', {
+            nextPrevious: "next"
+        });
+    });
+
+    $('#spotifyVolumeSlider').slider({
+        min: 0,
+        max: 100,
+        step: 1,
+        tooltip: 'hide',
+        value: 100
+    }).on('slide', function (ev) {
+        socket.emit('spotifyControl', {
+            volume: ev.value
+        });
+    });
+
 
     $("#ledPurpleButton").click(function () {
         setLEDColor(255,0,255);
@@ -312,6 +340,13 @@ socket.on('server-emit', function (data) {
         document.getElementById('spotifyPlayingPositionTime').innerHTML = data.spotify.playingPosition.toString().toHHMMSS();
         document.getElementById('spotifyPlayingPositionProgressbar').setAttribute('style', 'width:' + data.spotify.playingPosition/(data.spotify.track.length/100) + "%;");
         document.getElementById('spotifyPlayingPositionTimeTotal').innerHTML = data.spotify.track.length.toString().toHHMMSS();
+
+        if(data.spotify.playing)
+            document.getElementById('spotifyPlayPauseButton').firstElementChild.setAttribute('class', 'glyphicon glyphicon-pause');
+        else
+            document.getElementById('spotifyPlayPauseButton').firstElementChild.setAttribute('class', 'glyphicon glyphicon-play');
+
+
     }
     
     //MESSAGES

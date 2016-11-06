@@ -144,3 +144,10 @@ h2  {
 #spotifyAlbumArt    {
     width: 100%;
 }
+#spotifyPlayPauseButton span, #spotifyPreviousButton span, #spotifyNextButton span    {
+    font-size: 1.75em;
+}
+#music > .col-md-3 > .slider.slider-horizontal    {
+    margin-left: -20px;
+    width: 100% !important;
+}

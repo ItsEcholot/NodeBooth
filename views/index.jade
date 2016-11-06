@@ -127,6 +127,22 @@ block content
             span.pull-right#spotifyPlayingPositionTimeTotal
             .progress
               .progress-bar.progress-bar-striped.active(role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%")#spotifyPlayingPositionProgressbar
+          .col-md-2
+            a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyPreviousButton
+              span.glyphicon.glyphicon-backward(aria-hidden="true")
+          .col-md-2
+            a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyPlayPauseButton
+              span.glyphicon.glyphicon-play(aria-hidden="true")
+          .col-md-2
+            a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyNextButton
+              span.glyphicon.glyphicon-forward(aria-hidden="true")
+          .col-md-4
+            .slider.slider-horizontal#spotifyVolumeSlider
+          .col-md-2
+
+          .col-md-4
+            a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyAddMyMusicButton
+              span.glyphicon.glyphicon-play(aria-hidden="true")
         #infoCenter.tab-pane
           br
           .col-md-5

@@ -47,6 +47,7 @@ module.exports = function (io, simpleTelegram) {
 
 
     var returnValues;
+    var spotifyReturnValues = "";
 
     //HW MONITOR
     var core_temperature = [];
@@ -284,7 +285,9 @@ module.exports = function (io, simpleTelegram) {
         spotifyPlayingPosition = req.body.playing_position;
         spotifyVolume = req.body.volume;
         spotifyServerTime = req.body.server_time;
-        res.sendStatus(200);
+
+        res.send(JSON.stringify(spotifyReturnValues));
+        spotifyReturnValues = "";
     });
 
     router.post('/spotifyCover', function (req, res, next) {
@@ -409,6 +412,44 @@ module.exports = function (io, simpleTelegram) {
             if(data.r && data.g && data.b) {
                 currentRGB = [data.r, data.g, data.b];
                 serialPort.write('S ' + data.r + ' ' + data.g + ' ' + data.b + '\r', function (err) {});
+            }
+        });
+        
+        socket.on('spotifyControl', function (data) {
+            if(data.playing && data.playing=="switch")  {
+                spotifyReturnValues = {
+                    playing: !spotifyPlaying,
+                    nextPrevious: '',
+                    volume: -1
+                };
+            }
+            if(data.nextPrevious) {
+                switch (data.nextPrevious) {
+                    case("next"):
+                        spotifyReturnValues = {
+                            playing: spotifyPlaying,
+                            nextPrevious: 'next',
+                            volume: -1
+                        };
+                        break;
+                    case("previous"):
+                        spotifyReturnValues = {
+                            playing: spotifyPlaying,
+                            nextPrevious: 'previous',
+                            volume: -1
+                        };
+                        break;
+                    default:
+
+                }
+            }
+
+            if(data.volume) {
+                spotifyReturnValues = {
+                    playing: spotifyPlaying,
+                    nextPrevious: '',
+                    volume: data.volume
+                };
             }
         });
     });
