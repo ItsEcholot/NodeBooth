@@ -105,3 +105,42 @@ h2  {
 .animatedCircle {
     animation: circle 0.5s 1 linear;
 }
+
+
+#currentWeatherTemperature  {
+    font-weight: 100;
+    font-size: 2em;
+}
+
+.ct-chart   {
+    position: absolute;
+    width: 99%;
+}
+.ct-grid    {
+    stroke: rgba(255,255,255, 0.25);
+}
+.ct-label   {
+    fill: rgba(255,255,255, 0.5);
+    color: rgba(255,255,255, 1);
+}
+
+#hourlyWeatherTempGraph .ct-line {
+    stroke: rgba(255, 0, 0, 0.5) !important;
+}
+#hourlyWeatherTempGraph .ct-point {
+    stroke: rgba(255, 0, 0, 0.5) !important;
+}
+
+#hourlyWeatherRainGraph .ct-line {
+    stroke: rgba(0, 0, 255, 0.5) !important;
+}
+#hourlyWeatherRainGraph .ct-point {
+    stroke: rgba(0, 0, 255, 0.5) !important;
+}
+
+#hourlyWeatherRainAmountGraph .ct-bar {
+    stroke: rgba(0, 185, 232, 0.5) !important;
+}
+#spotifyAlbumArt    {
+    width: 100%;
+}

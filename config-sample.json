@@ -1,0 +1,9 @@
+//Duplicate this file, rename it to config.json and edit the values. Also remove this comment
+
+{
+  "port": 8101,
+  "pushBulletAPIKey": "",
+  "forecastAPIKey": "",
+  "githubRSSFeedURL": "",
+  "gamestarRSSFeedURL": "http://www.gamestar.de/news/rss/news.rss"
+}

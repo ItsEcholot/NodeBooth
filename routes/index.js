@@ -1,5 +1,5 @@
 module.exports = function (io, simpleTelegram) {
-    var config = require('../config');
+    var config = require('../config.json');
     var express = require('express');
     var rssWatcher = require('rss-watcher');
 
@@ -8,8 +8,41 @@ module.exports = function (io, simpleTelegram) {
     var pushBulletStream = pushBullet.stream();
     pushBulletStream.connect();
 
+    var Forecast = require('forecast');
+    var forecast = new Forecast({
+        service: 'forecast.io',
+        key: config.forecastAPIKey,
+        units: 'celcius', // Only the first letter is parsed
+        cache: false,      // Cache API requests?
+        ttl: {            // How long to cache requests. Uses syntax from moment.js: http://momentjs.com/docs/#/durations/creating/
+            minutes: 3,
+            seconds: 0
+        }
+    });
+    forecast.get([47.3817, 8.0636], true, function(err, weather) {
+        if(err) return console.dir(err);
+
+        forecastTimeOffset = weather.offset;
+        currentWeather = weather.currently;
+        hourlyWeather = weather.hourly;
+        dailyWeather = weather.daily;
+    });
+
     var githubHomeWatcher = new rssWatcher(config.githubRSSFeedURL);
     var gamestarWatcher = new rssWatcher(config.gamestarRSSFeedURL);
+
+    var SerialPort = require('serialport');
+    var serialPort = new SerialPort("/dev/ttyACM0", {
+        baudRate: 115200,
+        autoOpen: true
+    });
+    serialPort.on('open', function() {
+        console.log('Opened serial port');
+    });
+    serialPort.on('error', function(err) {
+        console.log('Error: ', err.message);
+    });
+
     var router = express.Router();
 
 
@@ -48,12 +81,34 @@ module.exports = function (io, simpleTelegram) {
     //MUSIC
     var beatValue;
 
+    //SPOTIFY
+    var spotifyPlaying;
+    var spotifyShuffle;
+    var spotifyRepeat;
+    var spotifyTrack;
+    var spotifyPlayingPosition;
+    var spotifyVolume;
+    var spotifyServerTime;
+    var spotifyCoverUrl;
+
+    //WEATHER
+    var forecastTimeOffset;
+    var currentWeather;
+    var hourlyWeather;
+    var dailyWeather;
+
+    //LED
+    var currentRGB = [0,0,0];
+    var animationProgress = 0.0;
+    var animationSpeed = 0.0;
+    var breathingEnabled = false;
+
     var addMessage = function (message) {
         message.content = message.content.substr(0,300);
         messages.push(message);
         messages = messages.sort(function(a,b){return b.timeStamp - a.timeStamp});
-        if(messages.length > 10)
-            messages = messages.slice(0,10);
+        if(messages.length > 20)
+            messages = messages.slice(0,19);
         console.log("New message: " + message.service);
     };
 
@@ -95,7 +150,12 @@ module.exports = function (io, simpleTelegram) {
 
             messages: messages.reverse(),
 
-            beatValue: beatValue
+            beatValue: beatValue,
+
+            forecastTimeOffset: forecastTimeOffset,
+            currentWeather: currentWeather,
+            hourlyWeather: hourlyWeather,
+            dailyWeather: dailyWeather
         });
     });
 
@@ -216,38 +276,27 @@ module.exports = function (io, simpleTelegram) {
         res.sendStatus(200);
     });
 
+    router.post('/spotify', function(req, res, next)    {
+        spotifyPlaying = req.body.playing;
+        spotifyShuffle = req.body.shuffle;
+        spotifyRepeat = req.body.repeat;
+        spotifyTrack = req.body.track;
+        spotifyPlayingPosition = req.body.playing_position;
+        spotifyVolume = req.body.volume;
+        spotifyServerTime = req.body.server_time;
+        res.sendStatus(200);
+    });
+
+    router.post('/spotifyCover', function (req, res, next) {
+        spotifyCoverUrl = req.body.albumArtUrl;
+        res.sendStatus(200);
+    });
+
 
     io.sockets.on('connection', function (socket) {
         //emit(server_emit)
         socket.emit('server-emit', {
-            core_temperature: core_temperature,
-            cpu_temperature: cpu_temperature,
-            cpu_clock: cpu_clock,
-            cpu_utilization: cpu_utilization,
-            core_utilization: core_utilization,
-            memory_utilization: memory_utilization,
-            memory_used: memory_used,
-            mobo_temperature: mobo_temperature,
-            gpu_temperature: gpu_temperature,
-            gpu_clock: gpu_clock,
-            gpu_utilization: gpu_utilization,
-            gpu_memoryUsed: gpu_memoryUsed,
-            gpu_memoryUtilization: gpu_memoryUtilization,
-            gpu_fanUtilization: gpu_fanUtilization,
-            nic2_downloadRate: nic2_downloadRate,
-            nic2_downloadUtilization: nic2_downloadUtilization,
-            nic2_uploadRate: nic2_uploadRate,
-            nic2_uploadUtilization: nic2_uploadUtilization,
-            fps: fps,
-
-            messages: messages,
-
-            beatValue: beatValue
-        });
-
-        //on(client-emit)
-        socket.on('client-emit', function (data) {
-            socket.emit('server-emit', {
+            systemInfo: {
                 core_temperature: core_temperature,
                 cpu_temperature: cpu_temperature,
                 cpu_clock: cpu_clock,
@@ -266,15 +315,84 @@ module.exports = function (io, simpleTelegram) {
                 nic2_downloadUtilization: nic2_downloadUtilization,
                 nic2_uploadRate: nic2_uploadRate,
                 nic2_uploadUtilization: nic2_uploadUtilization,
-                fps: fps,
+                fps: fps
+            },
+
+            messages: messages,
+
+            beatValue: beatValue,
+
+            spotify:    {
+                playing: spotifyPlaying,
+                shuffle: spotifyShuffle,
+                repeat: spotifyRepeat,
+                track: spotifyTrack,
+                playingPosition: spotifyPlayingPosition,
+                volume: spotifyVolume,
+                serverTime: spotifyServerTime,
+                coverUrl: spotifyCoverUrl
+            },
+
+            weather:    {
+                forecastTimeOffset: forecastTimeOffset,
+                currentWeather: currentWeather,
+                hourlyWeather: hourlyWeather,
+                dailyWeather: dailyWeather
+            }
+        });
+
+        //on(client-emit)
+        socket.on('client-emit', function (data) {
+            socket.emit('server-emit', {
+                systemInfo: {
+                    core_temperature: core_temperature,
+                    cpu_temperature: cpu_temperature,
+                    cpu_clock: cpu_clock,
+                    cpu_utilization: cpu_utilization,
+                    core_utilization: core_utilization,
+                    memory_utilization: memory_utilization,
+                    memory_used: memory_used,
+                    mobo_temperature: mobo_temperature,
+                    gpu_temperature: gpu_temperature,
+                    gpu_clock: gpu_clock,
+                    gpu_utilization: gpu_utilization,
+                    gpu_memoryUsed: gpu_memoryUsed,
+                    gpu_memoryUtilization: gpu_memoryUtilization,
+                    gpu_fanUtilization: gpu_fanUtilization,
+                    nic2_downloadRate: nic2_downloadRate,
+                    nic2_downloadUtilization: nic2_downloadUtilization,
+                    nic2_uploadRate: nic2_uploadRate,
+                    nic2_uploadUtilization: nic2_uploadUtilization,
+                    fps: fps
+                },
 
                 messages: messages,
 
-                beatValue: beatValue
+                beatValue: beatValue,
+
+                spotify:    {
+                    playing: spotifyPlaying,
+                    shuffle: spotifyShuffle,
+                    repeat: spotifyRepeat,
+                    track: spotifyTrack,
+                    playingPosition: spotifyPlayingPosition,
+                    volume: spotifyVolume,
+                    serverTime: spotifyServerTime,
+                    coverUrl: spotifyCoverUrl
+                },
+
+                weather:    {
+                    forecastTimeOffset: forecastTimeOffset,
+                    currentWeather: currentWeather,
+                    hourlyWeather: hourlyWeather,
+                    dailyWeather: dailyWeather
+                }
             });
             beatValue = 0;
         });
-        
+
+
+
         socket.on('switchToSpeaker', function (data) {
             returnValues = {
                 'lineOut': 'speaker'
@@ -286,13 +404,27 @@ module.exports = function (io, simpleTelegram) {
                 'lineIn': 'headset'
             };
         });
+
+        socket.on('ledControl', function (data) {
+            if(data.r && data.g && data.b) {
+                currentRGB = [data.r, data.g, data.b];
+                serialPort.write('S ' + data.r + ' ' + data.g + ' ' + data.b + '\r', function (err) {});
+            }
+        });
     });
 
-    simpleTelegram.create(config.telegramCLIBinPath, config.telegramCLIPubPath);
+    //LED animation loop
+    setInterval(function () {
+        animationProgress += animationSpeed;
+        
+        if(breathingEnabled)    {
 
-    simpleTelegram.getProcess().stdout.on("receivedMessage", function (msg) {
-        addMessage(msg);
-    });
+        }
+
+        if(animationProgress >= 3.12)
+            animationProgress = 0;
+    }, 50);
+
 
     pushBulletStream.on('connect', function() {
         console.log("Connected to PushBullet Stream");
@@ -321,10 +453,17 @@ module.exports = function (io, simpleTelegram) {
             messages[0].timeStamp = date.getTime();
         }
     });
-
-    githubHomeWatcher.run(function (err, articles) {
-
+    pushBulletStream.on('close', function() {
+        pushBulletStream.connect();
     });
+    pushBulletStream.on('error', function() {
+        pushBulletStream.connect();
+    });
+
+
+
+
+    githubHomeWatcher.run(function (err, articles) {    });
 
     githubHomeWatcher.on('new article', function (article) {
         var date = new Date();
@@ -340,9 +479,7 @@ module.exports = function (io, simpleTelegram) {
         addMessage(githubHomeObject);
     });
 
-    gamestarWatcher.run(function (err, articles) {
-
-    });
+    gamestarWatcher.run(function (err, articles) {  });
 
     gamestarWatcher.on('new article', function (article) {
         var date = new Date();
@@ -357,6 +494,22 @@ module.exports = function (io, simpleTelegram) {
         };
         addMessage(gamestarObject);
     });
+
+
+    //Forecast Interval
+    var forecastRefreshMinutes = 3, forecastRefreshInterval = forecastRefreshMinutes * 60 * 1000;
+    setInterval(function() {
+        forecast.get([47.3817, 8.0636], true, function(err, weather) {
+            if(err) return console.dir(err);
+
+            forecastTimeOffset = weather.offset;
+            currentWeather = weather.currently;
+            hourlyWeather = weather.hourly;
+            dailyWeather = weather.daily;
+
+            console.log('Updated Weather data');
+        });
+    }, forecastRefreshInterval);
 
     return router;
 }
