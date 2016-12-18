@@ -5,5 +5,12 @@
   "pushBulletAPIKey": "",
   "forecastAPIKey": "",
   "githubRSSFeedURL": "",
-  "gamestarRSSFeedURL": "http://www.gamestar.de/news/rss/news.rss"
+  "gamestarRSSFeedURL": "http://www.gamestar.de/news/rss/news.rss",
+
+  "spotifyUserID": "",
+  "spotifyScopes": ["playlist-modify-public", "playlist-modify-private", "user-library-read", "user-library-modify"],
+  "spotifyClientID": "",
+  "spotifyClientSecret": "",
+  "spotifyCallbackURL": "http://localhost",
+  "spotifyState": "SomeRandomString"
 }

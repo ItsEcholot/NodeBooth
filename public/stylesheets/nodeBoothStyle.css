@@ -68,6 +68,13 @@ body    {
 .nav-tabs > li > a {
     background-color: #1b1b1b;
     color: #ffffff;
+    padding: 5px;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+.nav-tabs > li > a:hover {
+    background-color: #1b1b1b;
+    border-color: transparent;
 }
 
 .nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus {
@@ -150,4 +157,34 @@ h2  {
 #music > .col-md-3 > .slider.slider-horizontal    {
     margin-left: -20px;
     width: 100% !important;
+}
+#spotifyPlayControlDiv .col-md-2, #spotifyPlaylistControlDiv .col-md-2, #spotifyPlaylistControlDiv .col-md-5{
+    text-align: center;
+}
+#spotifyPlaylistControlDiv  {
+    margin-top: 30px;
+}
+
+.wrapper         {width:100%;height:100%;margin:0 auto;background:#CCC}
+.h_iframe        {position:relative;}
+.h_iframe .ratio {display:block;width:100%;height:auto;}
+.h_iframe iframe {position:absolute;top:0;left:0;width:100%; height:100%;}
+
+.noAnimations   {
+    -webkit-transition: height 0.05s linear !important;
+    -moz-transition: height 0.05s linear !important;
+    -ms-transition: height 0.05s linear !important;
+    -o-transition: height 0.05s linear !important;
+    transition: height 0.05s linear !important;
+}
+.noAnimationsWidth  {
+    -webkit-transition: width 0.1s linear !important;
+    -moz-transition: width 0.1s linear !important;
+    -ms-transition: width 0.1s linear !important;
+    -o-transition: width 0.1s linear !important;
+    transition: width 0.1s linear !important;
+}
+
+#music .col-md-3    {
+    padding: 0;
 }

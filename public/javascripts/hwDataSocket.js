@@ -2,7 +2,8 @@
  * Created by Marc on 18.08.2016.
  */
 
-var socket = io.connect("http://192.168.178.66:8101");
+var ipAddress = "http://192.168.178.11:8101";
+var socket = io.connect(ipAddress);
 
 var date = new Date();
 
@@ -22,6 +23,13 @@ var hourlyWeatherRainGraph;
 var lastRGBSliderValues = [0,0,0];
 var greenSlider;
 
+var spotifyLastTrack;
+var spotifyRapPlaylistId = "1jcVJYU6PK55VkMXq2QNY4";
+var spotifyEdmPlaylistId = "2bVw9vqrF7sgRT0Vv74To4";
+var spotifyRocknOtherShizzleId = "6N0qe9O6kVCm1MCk12IoH4";
+
+var youtubeLastVideoId;
+
 String.prototype.toHHMMSS = function () {
     var sec_num = parseInt(this, 10); // don't forget the second param
     var hours   = Math.floor(sec_num / 3600);
@@ -39,11 +47,13 @@ function hideSystemTab()    {
         $('#systemToggle').addClass('hidden');
         $('#system').addClass('hidden');
 
-        $('#systemToggle').removeClass('active');
-        $('#system').removeClass('active');
+        if($('#systemToggle').hasClass('active') && $('#system').hasClass('active'))    {
+            $('#systemToggle').removeClass('active');
+            $('#system').removeClass('active');
 
-        $('#infoCenterToggle').addClass('active');
-        $('#infoCenter').addClass('active');
+            $('#infoCenterToggle').addClass('active');
+            $('#infoCenter').addClass('active');
+        }
     }
 }
 
@@ -52,6 +62,10 @@ function showSystemTab() {
         $('#systemToggle').removeClass('hidden');
         $('#system').removeClass('hidden');
     }
+}
+
+function remap(input, input_min, input_max, output_min, output_max)    {
+    return (input - input_min) * (output_max - output_min) / (input_max - input_min) + output_min;
 }
 
 $(document).ready(function() {
@@ -90,44 +104,89 @@ $(document).ready(function() {
         });
     });
 
+    $('#spotifyAddMyMusicButton').click(function () {
+        $.get('/spotifyWebApi/myMusic/add/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (data) {
+            if(data.success)    {
+                $.get(ipAddress+'/spotifyWebApi/myMusic/contains/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (getData) {
+                    if(getData.success && getData.trackContains)    {
+                        $('#spotifyAddMyMusicButton').attr('class', 'btn btn-success');
+                        $('#spotifyAddMyMusicButton span').attr('class', 'glyphicon glyphicon-ok');
+                    }
+                });
+            }
+            else    {
+                $('#spotifyAddMyMusicButton').attr('class', 'btn btn-danger');
+                $('#spotifyAddMyMusicButton span').attr('class', 'glyphicon glyphicon-remove');
+            }
+        });
+    });
+    $('.spotifyAddToPlaylistButton').click(function () {
+        switch ($(this).attr('playlist'))   {
+            case "rap":
+                $.get('/spotifyWebApi/playlist/get/'+spotifyRapPlaylistId, function (playlistData) {
+                    $.get('/spotifyWebApi/playlist/removeAllOccurence/'+spotifyRapPlaylistId+'/'+encodeURIComponent(playlistData.data.snapshot_id)+'/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (removeAllOccurenceData) {
+                        $.get('/spotifyWebApi/playlist/add/'+spotifyRapPlaylistId+'/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (addData) {
+                            if(addData.success) {
+                                $("#spotifyRapPlaylistButton").attr('class', 'btn btn-success');
+                            }
+                        });
+                    });
+                });
+                break;
+            case "edm":
+                $.get('/spotifyWebApi/playlist/get/'+spotifyEdmPlaylistId, function (playlistData) {
+                    $.get('/spotifyWebApi/playlist/removeAllOccurence/'+spotifyEdmPlaylistId+'/'+encodeURIComponent(playlistData.data.snapshot_id)+'/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (removeAllOccurenceData) {
+                        $.get('/spotifyWebApi/playlist/add/'+spotifyEdmPlaylistId+'/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (addData) {
+                            if(addData.success) {
+                                $("#spotifyEDMPlaylistButton").attr('class', 'btn btn-success');
+                            }
+                        });
+                    });
+                });
+                break;
+            case "rocknothershizzle":
+                $.get('/spotifyWebApi/playlist/get/'+spotifyRocknOtherShizzleId, function (playlistData) {
+                    $.get('/spotifyWebApi/playlist/removeAllOccurence/'+spotifyRocknOtherShizzleId+'/'+encodeURIComponent(playlistData.data.snapshot_id)+'/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (removeAllOccurenceData) {
+                        $.get('/spotifyWebApi/playlist/add/'+spotifyRocknOtherShizzleId+'/'+spotifyLastTrack.substr(14, spotifyLastTrack.length), function (addData) {
+                            if(addData.success) {
+                                $(this).attr('class', 'btn btn-success');
+                            }
+                        });
+                    });
+                });
+                break;
+        }
+    });
+
 
     $("#ledPurpleButton").click(function () {
-        setLEDColor(255,0,255);
-        setLEDSliders(255,0,255);
+        setSolidColorTransitionLed(1, 255, 0, 255);
+        //getSolidColorLed(1);
     });
     $("#ledBlueButton").click(function () {
-        setLEDColor(0,0,255);
-        setLEDSliders(0,0,255);
+        setSolidColorTransitionLed(1, 0, 0, 255);
     });
     $("#ledDeepSkyBlueButton").click(function () {
-        setLEDColor(0,191,255);
-        setLEDSliders(0,191,255);
+        setSolidColorTransitionLed(1, 0, 191, 255);
     });
     $("#ledGreenButton").click(function () {
-        setLEDColor(0,255,0);
-        setLEDSliders(0,255,0);
+        setSolidColorTransitionLed(1, 0, 255, 0);
     });
     $("#ledYellowButton").click(function () {
-        setLEDColor(255,200,0);
-        setLEDSliders(255,200,0);
+        setSolidColorTransitionLed(1, 255, 125, 0);
     });
     $("#ledWhiteButton").click(function () {
-        setLEDColor(255,255,255);
-        setLEDSliders(255,255,255);
+        setSolidColorTransitionLed(1, 255, 255, 255);
     });
     $("#ledOrangeButton").click(function () {
-        setLEDColor(255,128,0);
-        setLEDSliders(255,128,0);
+        setSolidColorTransitionLed(1, 255, 50, 0);
     });
     $("#ledRedButton").click(function () {
-        setLEDColor(255,0,0);
-        setLEDSliders(255,0,0);
+        setSolidColorTransitionLed(1, 255, 0, 0);
     });
     $("#ledOffButton").click(function () {
-        setLEDColor(0,0,0);
-        setLEDSliders(0,0,0);
+        setSolidColorTransitionLed(1, 0, 0, 0);
     });
-
 
     $('#ledRGBSliderR').slider({
         min: 0,
@@ -135,7 +194,8 @@ $(document).ready(function() {
         step: 1,
         tooltip: 'hide'
     }).on('slide', function (ev) {
-        setLEDColor(ev.value,-1,-1);
+        $('#ledRGBSliderR').attr('value', ev.value);
+        setSolidColorTransitionLed(3, ev.value, $('#ledRGBSliderG').attr('value'), $('#ledRGBSliderB').attr('value'));
     });
     $('#ledRGBSliderG').slider({
         min: 0,
@@ -143,7 +203,8 @@ $(document).ready(function() {
         step: 1,
         tooltip: 'hide'
     }).on('slide', function (ev) {
-        setLEDColor(-1,ev.value,-1);
+        $('#ledRGBSliderG').attr('value', ev.value);
+        setSolidColorTransitionLed(3, $('#ledRGBSliderR').attr('value'), ev.value, $('#ledRGBSliderB').attr('value'));
     });
     $('#ledRGBSliderB').slider({
         min: 0,
@@ -151,9 +212,63 @@ $(document).ready(function() {
         step: 1,
         tooltip: 'hide'
     }).on('slide', function (ev) {
-        setLEDColor(-1,-1,ev.value);
+        $('#ledRGBSliderB').attr('value', ev.value);
+        setSolidColorTransitionLed(3, $('#ledRGBSliderR').attr('value'), $('#ledRGBSliderG').attr('value'), ev.value);
     });
 
+    $("#ledAmbilightButton").click(function () {
+        if($("#ledAmbilightButton").attr('action') == 'on') {
+            socket.emit('ledControl', {
+                ambilight: 'on'
+            });
+            $("#ledAmbilightButton").attr('action', 'off');
+            $("#ledAmbilightButton").attr('class', 'btn btn-success');
+        }
+        else if($("#ledAmbilightButton").attr('action') == 'off') {
+            socket.emit('ledControl', {
+                ambilight: 'off'
+            });
+            $("#ledAmbilightButton").attr('action', 'on');
+            $("#ledAmbilightButton").attr('class', 'btn btn-danger');
+        }
+    });
+    $('#ledBeatActionButton').click(function () {
+        if($("#ledBeatActionButton").attr('action') == 'on') {
+            socket.emit('ledControl', {
+                beatAction: 'on'
+            });
+            $("#ledBeatActionButton").attr('action', 'off');
+            $("#ledBeatActionButton").attr('class', 'btn btn-success');
+        }
+        else if($("#ledBeatActionButton").attr('action') == 'off') {
+            socket.emit('ledControl', {
+                beatAction: 'off'
+            });
+            $("#ledBeatActionButton").attr('action', 'on');
+            $("#ledBeatActionButton").attr('class', 'btn btn-danger');
+        }
+    });
+    $("#ledGammaCorrectionButton").click(function () {
+        if($("#ledGammaCorrectionButton").attr('action') == 'on') {
+            socket.emit('ledControl', {
+                paramsArray:  [13, 1]
+            });
+            $("#ledGammaCorrectionButton").attr('action', 'off');
+            $("#ledGammaCorrectionButton").attr('class', 'btn btn-success');
+        }
+        else if($("#ledGammaCorrectionButton").attr('action') == 'off') {
+            socket.emit('ledControl', {
+                paramsArray:  [13, 0]
+            });
+            $("#ledGammaCorrectionButton").attr('action', 'on');
+            $("#ledGammaCorrectionButton").attr('class', 'btn btn-danger');
+        }
+    });
+
+
+    $('#refreshButton').click(function () {
+        location.reload();
+    });
 
     currentWeatherIcon.add("currentWeatherIcon", "clear-day");
 
@@ -209,7 +324,7 @@ socket.on('server-emit', function (data) {
 
     if(JSON.stringify(data.systemInfo) == lastServerEmitData) {
         systemSameDataCounter++;
-        if(systemSameDataCounter > 15) {
+        if(systemSameDataCounter > 50) {
             hideSystemTab();
             systemHidden = true;
             systemSameDataCounter = 0;
@@ -224,8 +339,6 @@ socket.on('server-emit', function (data) {
         systemSameDataCounter = 0;
     }
     lastServerEmitData = JSON.stringify(data.systemInfo);
-
-
 
 
     if($('#infoCenterToggle').hasClass('active'))   {
@@ -346,7 +459,53 @@ socket.on('server-emit', function (data) {
         else
             document.getElementById('spotifyPlayPauseButton').firstElementChild.setAttribute('class', 'glyphicon glyphicon-play');
 
+        if(spotifyLastTrack != data.spotify.track.track_resource.uri)  {
+            spotifyLastTrack = data.spotify.track.track_resource.uri;
 
+            $.get(ipAddress+'/spotifyWebApi/myMusic/contains/'+data.spotify.track.track_resource.uri.substr(14, data.spotify.track.track_resource.uri.length), function (getData) {
+                if(getData.success && getData.trackContains)    {
+                    $('#spotifyAddMyMusicButton').attr('class', 'btn btn-success');
+                    $('#spotifyAddMyMusicButton span').attr('class', 'glyphicon glyphicon-ok');
+                }
+                else if(getData.success && !getData.trackContains)  {
+                    $('#spotifyAddMyMusicButton').attr('class', 'btn btn-warning');
+                    $('#spotifyAddMyMusicButton span').attr('class', 'glyphicon glyphicon-plus');
+                }
+                else {
+                    $('#spotifyAddMyMusicButton').attr('class', 'btn btn-danger');
+                    $('#spotifyAddMyMusicButton span').attr('class', 'glyphicon glyphicon-remove');
+                }
+            });
+            $("#spotifyRapPlaylistButton").attr('class', 'btn btn-warning');
+            $("#spotifyEDMPlaylistButton").attr('class', 'btn btn-warning');
+        }
+
+        document.getElementById('spectrumGraph1').setAttribute("style", "height:" + data.spectrumData[0] + "%;");
+        document.getElementById('spectrumGraph2').setAttribute("style", "height:" + data.spectrumData[1] + "%;");
+        document.getElementById('spectrumGraph3').setAttribute("style", "height:" + data.spectrumData[2] + "%;");
+        document.getElementById('spectrumGraph4').setAttribute("style", "height:" + data.spectrumData[3] + "%;");
+        document.getElementById('spectrumGraph5').setAttribute("style", "height:" + data.spectrumData[4] + "%;");
+        document.getElementById('spectrumGraph6').setAttribute("style", "height:" + data.spectrumData[5] + "%;");
+        document.getElementById('spectrumGraph7').setAttribute("style", "height:" + data.spectrumData[6] + "%;");
+        document.getElementById('spectrumGraph8').setAttribute("style", "height:" + data.spectrumData[7] + "%;");
+        document.getElementById('spectrumGraph9').setAttribute("style", "height:" + data.spectrumData[8] + "%;");
+        document.getElementById('spectrumGraph10').setAttribute("style", "height:" + data.spectrumData[9] + "%;");
+        document.getElementById('spectrumGraph11').setAttribute("style", "height:" + data.spectrumData[10] + "%;");
+        document.getElementById('spectrumGraph12').setAttribute("style", "height:" + data.spectrumData[11] + "%;");
+        document.getElementById('spectrumGraph13').setAttribute("style", "height:" + data.spectrumData[12] + "%;");
+        document.getElementById('spectrumGraph14').setAttribute("style", "height:" + data.spectrumData[13] + "%;");
+        document.getElementById('spectrumGraph15').setAttribute("style", "height:" + data.spectrumData[14] + "%;");
+        document.getElementById('spectrumGraph16').setAttribute("style", "height:" + data.spectrumData[15] + "%;");
+
+        document.getElementById('levelGraph').setAttribute('style', 'width:' + data.level + '%;');
+    }
+
+    if($('#videoToggle').hasClass('active'))    {
+        if(data.video.youtubeVideoId && data.video.youtubeVideoId != youtubeLastVideoId)   {
+            youtubeLastVideoId = data.video.youtubeVideoId;
+
+            $('#videoIFrame').attr('src', 'https://www.youtube.com/embed/'+youtubeLastVideoId+'?enablejsapi=1');
+        }
     }
     
     //MESSAGES
@@ -401,13 +560,17 @@ socket.on('server-emit', function (data) {
     }
 });
 
+socket.on('serialData', function (data) {
+    console.log(data);
+});
+
 socketEmitLoop();
 
 function socketEmitLoop() {
     setTimeout(function () {
         socket.emit('client-emit', {});
         socketEmitLoop();
-    }, 250);
+    }, 50);
 }
 
 var timestampToTimeString = function (timeStamp) {
@@ -440,25 +603,36 @@ function checkTime(i) {
     return i;
 }
 
-function setLEDColor(r, g, b)   {
-    if(r != -1)
-        lastRGBSliderValues[0] = r;
-    if(g != -1)
-        lastRGBSliderValues[1] = g;
-    if(b != -1)
-        lastRGBSliderValues[2] = b;
-
+function setSolidColorTransitionLed(transitionSpeed, r, g, b)  {
     socket.emit('ledControl', {
-        r: lastRGBSliderValues[0],
-        g: lastRGBSliderValues[1],
-        b: lastRGBSliderValues[2]
+        paramsArray:  [10, transitionSpeed, r, g, b]
     });
 }
-function setLEDSliders(r, g, b)   {
-    if(r != -1)
-        $('#ledRGBSliderR').slider('setValue', r);
-    if(g != -1)
-        $('#ledRGBSliderG').slider('setValue', g);
-    if(b != -1)
-        $('#ledRGBSliderB').slider('setValue', b);
+function setSolidColorLed(r,g,b)    {
+    socket.emit('ledControl', {
+        paramsArray:  [1, r, g, b]
+    });
+}
+function getSolidColorLed(ledIndex) {
+    socket.emit('ledControl', {
+        paramsArray: [8, ledIndex]
+    });
+}
+
+function callPlayer(func, args) {
+    var iframes = document.getElementsByTagName('iframe');
+    for (var i = 0; i < iframes.length; ++i) {
+        if (iframes[i]) {
+            var src = iframes[i].getAttribute('src');
+            if (src) {
+                if (src.indexOf('youtube.com/embed') != -1) {
+                    iframes[i].contentWindow.postMessage(JSON.stringify({
+                        'event': 'command',
+                        'func': func,
+                        'args': args || []
+                    }), "*");
+                }
+            }
+        }
+    }
 }

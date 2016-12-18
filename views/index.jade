@@ -26,8 +26,13 @@ block content
           a(data-toggle="tab" href="#system") System
         li#musicToggle
           a(data-toggle="tab" href="#music") Music
+        li#videoToggle
+          a(data-toggle="tab" href="#video") Video
         li#ledControlToggle
           a(data-toggle="tab" href="#ledControl") LED
+        li(style="float: right;")
+          a(role="button")#refreshButton
+            span(aria-hidden="true").glyphicon.glyphicon-transfer
 
       .tab-content
         #system.tab-pane.active
@@ -126,7 +131,8 @@ block content
             span.progress-label#spotifyPlayingPositionTime
             span.pull-right#spotifyPlayingPositionTimeTotal
             .progress
-              .progress-bar.progress-bar-striped.active(role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%")#spotifyPlayingPositionProgressbar
+              .progress-bar.progress-bar-striped(role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%")#spotifyPlayingPositionProgressbar
+          br
           .col-md-2
             a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyPreviousButton
               span.glyphicon.glyphicon-backward(aria-hidden="true")
@@ -136,13 +142,92 @@ block content
           .col-md-2
             a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyNextButton
               span.glyphicon.glyphicon-forward(aria-hidden="true")
-          .col-md-4
+          .col-md-6
             .slider.slider-horizontal#spotifyVolumeSlider
+          .clearfix(style="margin-bottom: 20px;")
           .col-md-2
-
+            a(role="button" style="border-radius: 90px;").btn.btn-warning#spotifyAddMyMusicButton
+              span.glyphicon.glyphicon-plus(aria-hidden="true")
+          .col-md-5
+            a(role="button" playlist="rap" style="width: 100%;").btn.btn-warning.spotifyAddToPlaylistButton#spotifyRapPlaylistButton
+              span.glyphicon.glyphicon-plus(aria-hidden="true")
+              | Rap
+          .col-md-5
+            a(role="button" playlist="edm" style="width: 100%;").btn.btn-warning.spotifyAddToPlaylistButton#spotifyEDMPlaylistButton
+              span.glyphicon.glyphicon-plus(aria-hidden="true")
+              | EDM
+          .clearfix(style="margin-bottom: 10px")
+          .col-md-12(style="padding: 0;")
+            .progress(style="background-color: #5a5a5a; margin-bottom: 0px;")
+              .progress-bar.progress-bar-danger.noAnimationsWidth(role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%")#levelGraph
+          .clearfix
+          .col-md-3
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph1.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph2.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph3.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph4.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+          .col-md-3
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph5.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph6.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph7.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph8.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+          .col-md-3
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph9.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph10.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph11.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph12.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+          .col-md-3
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph13.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph14.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph15.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+            .col-md-3
+              .wideVerticalBar.progress.progress-bar-vertical
+                #spectrumGraph16.progress-bar.progress-bar-success.noAnimations(role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: " + core_utilization[4] + "%;")
+        #video.tab-pane
+          br
+          .col-md-12
+            .wrapper
+              .h_iframe
+                img(src="http://placehold.it/16x9").ratio
+                iframe(src="" frameborder="0" allowscriptaccess="always" allowfullscreen)#videoIFrame
+          .clearfix(style="margin-bottom: 20px;")
           .col-md-4
-            a(role="button" style="border-radius: 90px;").btn.btn-primary#spotifyAddMyMusicButton
-              span.glyphicon.glyphicon-play(aria-hidden="true")
+            a(href="javascript:void callPlayer(\"playVideo\")" role="button" style="width: 100%;").btn.btn-primary#playYoutubeVideo Play
+          .col-md-4
+            a(href="javascript:void callPlayer(\"pauseVideo\")" role="button" style="width: 100%;").btn.btn-primary#pauseYoutubeVideo Pause
+          .col-md-4
+            a(href="javascript:void callPlayer(\"stopVideo\")" role="button" style="width: 100%;").btn.btn-primary#stopYoutubeVideo Stop
+
         #infoCenter.tab-pane
           br
           .col-md-5
@@ -186,3 +271,12 @@ block content
             .slider.slider-horizontal#ledRGBSliderG
           .col-md-12
             .slider.slider-horizontal#ledRGBSliderB
+
+          .clearfix(style="margin-bottom: 20px;")
+
+          .col-md-4
+            a#ledBeatActionButton.btn.btn-danger(style="width: 100%;" action="on") Beat Detection
+          .col-md-4
+            a#ledAmbilightButton.btn.btn-danger(style="width: 100%;" action="on") Ambilight
+          .col-md-4
+            a#ledGammaCorrectionButton.btn.btn-danger(style="width: 100%;" action="on") GammaCorrection
