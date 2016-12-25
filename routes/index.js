@@ -141,7 +141,7 @@ module.exports = function (io, simpleTelegram) {
     var dailyWeather;
 
     //LED
-    var lastSerialCommand;
+    var lastSolidColor = [];
     var serialAnswerCollection;
     var ambilightEnabled = false;
     var beatLedReactionEnabled = false;
@@ -547,11 +547,16 @@ module.exports = function (io, simpleTelegram) {
 
         socket.on('ledControl', function (data) {
             if(data.paramsArray)  {
-                lastSerialCommand = data.paramsArray[0];
                 var cobsArray = cobs.encode(new Buffer(data.paramsArray));
                 for(var i=0; i<cobsArray.length; i++)  {
                     var newByteArray = [cobsArray[i]];
                     serialPort.write(newByteArray);
+                }
+
+                if(data.paramsArray[0] == 10)   {
+                    lastSolidColor[0] = data.paramsArray[2];
+                    lastSolidColor[1] = data.paramsArray[3];
+                    lastSolidColor[2] = data.paramsArray[4];
                 }
             }
             if(data.ambilight)   {
@@ -644,19 +649,29 @@ module.exports = function (io, simpleTelegram) {
     function beatAction()   {
         //var cobsArray = cobs.encode(new Buffer([10, 12, Math.floor(Math.random()*(255-25+1)+25), Math.floor(Math.random()*(255-25+1)+25), Math.floor(Math.random()*(255-25+1)+25)]));
         //serialPort.write(cobsArray);
-        serialPort.write(cobs.encode(new Buffer([3,0,22,255,0,0])));
-        serialPort.write(cobs.encode(new Buffer([12,1,0,22,0,0,0])));
+        serialPort.write(cobs.encode(new Buffer([3,0,22,lastSolidColor[0],lastSolidColor[1],lastSolidColor[2]])));
+        serialPort.write(cobs.encode(new Buffer([12,5,0,22,0,0,0])));
+        serialPort.write(cobs.encode(new Buffer([3,31,49,lastSolidColor[0],lastSolidColor[1],lastSolidColor[2]])));
+        serialPort.write(cobs.encode(new Buffer([12,5,31,49,0,0,0])));
     }
     function beatVisualizer()   {
-        //7 leds 16 bands
-        serialPort.write(cobs.encode(new Buffer([11, 10, 30, 255*(((spectrumData[0]+spectrumData[1])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 29, 255*(((spectrumData[2]+spectrumData[3])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 28, 255*(((spectrumData[4]+spectrumData[5])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 27, 255*(((spectrumData[6]+spectrumData[7])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 26, 255*(((spectrumData[8]+spectrumData[9])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 25, 255*(((spectrumData[10]+spectrumData[11])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 24, 255*(((spectrumData[12]+spectrumData[13])/2)/100), 0, 0])));
-        serialPort.write(cobs.encode(new Buffer([11, 10, 23, 255*(((spectrumData[14]+spectrumData[15])/2)/100), 0, 0])));
+        //8 leds 16 bands
+        var spec01Percentage = (((spectrumData[0]+spectrumData[1])/2)/100);
+        var spec23Percentage = (((spectrumData[2]+spectrumData[3])/2)/100);
+        var spec45Percentage = (((spectrumData[4]+spectrumData[5])/2)/100);
+        var spec67Percentage = (((spectrumData[6]+spectrumData[7])/2)/100);
+        var spec89Percentage = (((spectrumData[8]+spectrumData[9])/2)/100);
+        var spec1011Percentage = (((spectrumData[10]+spectrumData[11])/2)/100);
+        var spec1213Percentage = (((spectrumData[12]+spectrumData[13])/2)/100);
+        var spec1415Percentage = (((spectrumData[14]+spectrumData[15])/2)/100);
+        serialPort.write(cobs.encode(new Buffer([11, 10, 30, 255*spec01Percentage, 0, 255*spec01Percentage])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 29, 255*spec23Percentage, 0, 30*spec23Percentage])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 28, 255*spec45Percentage, 0, 0])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 27, 255*spec67Percentage, 50*spec67Percentage, 0])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 26, 255*spec89Percentage, 127*spec89Percentage, 0])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 25, 0, 255*spec1011Percentage, 0])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 24, 0, 175*spec1213Percentage, 255*spec1213Percentage])));
+        serialPort.write(cobs.encode(new Buffer([11, 10, 23, 0, 0, 255*spec1415Percentage])));
     }
 
     pushBulletStream.on('connect', function() {
@@ -699,17 +714,20 @@ module.exports = function (io, simpleTelegram) {
         }
     });
     pushBulletStream.on('close', function() {
-        pushBulletStream.connect();
+        console.log('PushBullet Closed');
     });
     pushBulletStream.on('error', function() {
-        pushBulletStream.connect();
+        console.log('PushBullet error');
     });
-
-
+    var pushBulletReconnectHours = 4, pushBulletReconnectInterval = pushBulletReconnectHours * 60 * 60 * 1000;
+    setInterval(function () {
+        console.log('PushBullet Reconnect...');
+        pushBulletStream.close();
+        pushBulletStream.connect();
+    }, pushBulletReconnectInterval);
 
 
     githubHomeWatcher.run(function (err, articles) {    });
-
     githubHomeWatcher.on('new article', function (article) {
         var date = new Date();
         var githubHomeObject = {
@@ -723,9 +741,7 @@ module.exports = function (io, simpleTelegram) {
         };
         addMessage(githubHomeObject);
     });
-
     gamestarWatcher.run(function (err, articles) {  });
-
     gamestarWatcher.on('new article', function (article) {
         var date = new Date();
         var gamestarObject = {
